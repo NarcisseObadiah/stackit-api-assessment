@@ -18,7 +18,7 @@ def notify():
     # store the notification in memory (both Warning and Info)
     notifications.append(data)
 
-    if data["Type"]== "Warning":
+    if data["Type"] == "Warning":
         # forward to slack
         if slack_webhook:
             requests.post(slack_webhook, json={
