@@ -1,27 +1,44 @@
+import os
+import requests
 from flask import Flask, request, jsonify
-from messenger import fordward_message
-from storage import store_notification
 
-app = Flask(_name_)
+app = Flask(__name__)
+slack_webhook = os.getenv("SLACK_WEBHOOK_URL")
 
-@app.route("/notifications", methods=["POST"])
-def notifications():
+# In memory storage for all the incoming notifications
+notifications = []
+
+@app.route("/notify", methods=["POST"])
+def notify():
     data = request.get_json()
-    required_fields = ["Type", "Name", "Description"]
 
-    #Checking for valid payload
-    if not data or notification all(field in data for field in required_fields):
+    if not data or "Type" not in data or "Name" not in data or "Description" not in data:
         return jsonify({"error": "Invalid payload"}), 400
 
-    #Forward or igmore based on the type
-    if data["Type"] == "Warning":
-        fordward_message(data)
-        store_notification(data, status="forwarded")
-    elif data["type"] == "Info":
-        store_notification(data, status="forwarded")
-    else:
-        return jsonify({"error": "Invalid Type"}), 400
-    return jsonify({"status": "received"}), 200
+    # store the notification in memory (both Warning and Info)
+    notifications.append(data)
 
-if _name_ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    if data["Type"]== "Warning":
+        # forward to slack
+        if slack_webhook:
+            requests.post(slack_webhook, json={
+                "text": f" WARNING: {data['Name']} - {data['Description']}"
+            })
+        return jsonify({"status": "forwarded to Slack"}), 200
+
+    elif data["Type"] == "Info":
+        # Do NOT forward, just acknowledge
+        return jsonify({"status": "stored but not forwarded (Info)"}), 200
+
+    else:
+        # unknown type
+        return jsonify({"status": f"stored but type '{data['Type']}' not handled"}), 200
+
+
+@app.route("/notifications", methods=["GET"])
+def get_notifications():
+    return jsonify(notifications), 200
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
