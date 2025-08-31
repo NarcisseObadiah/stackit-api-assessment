@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 slack_webhook = os.getenv("SLACK_WEBHOOK_URL")
 
-# In-memory storage for all incoming notifications, this reset each time the service restart(Non-Persistent)
+# In memory storage for all incoming notifications, this reset each time the service restart(Non-Persistent)
 notifications = []
 
 # Endpoint to receive notifications.
