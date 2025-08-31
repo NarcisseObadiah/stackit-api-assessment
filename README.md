@@ -155,6 +155,11 @@ In a production environment, this API could be deployed as follows:
 
 ---
 
+
+## Quick Note: 
+
+    For local development, a Python virtual environment (venv/) might be use
+
 ## 📝 API Documentation / Swagger
 
 For this coding challenge, the API is documented in this README with example requests.  
